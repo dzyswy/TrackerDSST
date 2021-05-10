@@ -459,11 +459,23 @@ cv::Mat KCFTracker::getFeatures(const cv::Mat & image, bool inithann, float scal
         cv::resize(z, z, _tmpl_sz);
     }
 
+    imshow("z", z);
+
     // HOG features
     if (_hogfeatures) {
         IplImage z_ipl = z;
         CvLSVMFeatureMapCaskade *map;
+        CvLSVMFeatureMapCaskade *map1;
         getFeatureMaps(&z_ipl, cell_size, &map);
+        calcFeatureMaps(&z_ipl, cell_size, &map1);
+        int diff = compare_featuremap(map, map1);
+        if (diff < 0)
+            printf("feature is diff!\n");
+        else
+        {
+            printf("feature is same!\n");
+        }
+        
         normalizeAndTruncate(map,0.2f);
         PCAFeatureMaps(map);
         size_patch[0] = map->sizeY;

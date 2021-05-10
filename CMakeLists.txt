@@ -14,8 +14,8 @@ include_directories(${OpenCV_DIR}/include)
 
 include_directories(src) 
 FILE(GLOB_RECURSE sourcefiles "src/*.cpp")
-add_executable( KCF ${sourcefiles} )
-target_link_libraries( KCF ${OpenCV_LIBS})
+add_executable( dsst ${sourcefiles} )
+target_link_libraries( dsst ${OpenCV_LIBS})
 
 SET(CMAKE_BUILD_TYPE "Debug")
 IF(CMAKE_COMPILER_IS_GNUCC)

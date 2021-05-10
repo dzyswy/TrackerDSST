@@ -13,7 +13,7 @@
 #include <sys/time.h>
 #include "json/json.h"
 
-#define CONFIG_FILENAME "./src/config.json"
+#define CONFIG_FILENAME "../src/config.json"
 
 
 using namespace std;
@@ -99,6 +99,8 @@ bool parse_config(char * path, sys_config & config)
 }
 
 
+
+#if 0
 int main(int argc, char* argv[]){
 
     bool HOG = true;
@@ -133,7 +135,9 @@ int main(int argc, char* argv[]){
 
 	if (argc > 5) return -1;
 
-	VideoCapture cam(0); //webcam
+  std::string video_file = argv[1];
+
+	VideoCapture cam(video_file); //webcam
 
 	for(int i = 0; i < argc; i++){
 		if ( strcmp (argv[i], "hog") == 0 )
@@ -238,6 +242,11 @@ int main(int argc, char* argv[]){
     case 'Q':
     case 27: //escape key
         return 0;
+    case ' ':
+    {
+        waitKey();
+        
+    } break;   
 		default:
         break;
     }
@@ -252,3 +261,112 @@ int main(int argc, char* argv[]){
   return 0;
 
 }
+
+
+#else
+
+
+
+int main(int argc, char* argv[]){
+
+	if (argc > 5) return -1;
+	
+	if (argc != 2) {
+		printf("usage: %s path\n", argv[0]);
+		return -1;
+	}
+
+	bool HOG = true;
+	bool FIXEDWINDOW = false;
+	bool MULTISCALE = true;
+	bool SILENT = true;
+	bool LAB = false;
+	// Create KCFTracker object
+	KCFTracker tracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
+
+	// DSSTTracker tracker;
+
+	int count = 1;
+	cv::Mat processImg;
+	char name[7];
+	std::string imgName;
+	std::string imgPath = argv[1];//"../Bird1/";
+
+	//get init target box params from information file
+	std::ifstream initInfoFile;
+	std::string fileName = imgPath + "groundtruth_rect.txt";
+	initInfoFile.open(fileName);
+	std::string firstLine;
+	std::getline(initInfoFile, firstLine);
+	float initX, initY, initWidth, initHegiht;
+	char ch;
+	std::istringstream ss(firstLine);
+	ss >> initX, ss >> ch;
+	ss >> initY, ss >> ch;
+	ss >> initWidth, ss >> ch;
+	ss >> initHegiht, ss >> ch;
+
+	cv::Rect initRect = cv::Rect(initX, initY, initWidth, initHegiht);
+  printf("(%d %d %d %d)\n", (int)initX, (int)initY, (int)initWidth, (int)initHegiht);
+
+	double duration = 0;
+	for (;;)
+	{
+		auto t_start = clock();
+		sprintf(name, "%04d", count);
+		std::string imgFinalPath = imgPath + "img/" + std::string(name) + ".jpg";
+		std::cout << imgFinalPath << std::endl;
+		processImg = cv::imread(imgFinalPath, IMREAD_GRAYSCALE);
+   // processImg = cv::imread(imgFinalPath);
+
+		//processImg = cv::imread(imgFinalPath, CV_LOAD_IMAGE_COLOR);
+
+		if (processImg.empty())
+		{
+			printf("Failed to open image: %s\n", imgFinalPath.c_str());
+			break;
+		}
+    
+		cv::Rect showRect;
+		if (count == 1)
+		{
+			tracker.init(initRect, processImg);
+			showRect = initRect;
+		}
+		else{
+			showRect = tracker.update(processImg);
+			// printf( "rect (w h): %d %d \n" , showRect.width, showRect.height);
+		}
+		auto t_end = clock();
+		duration += (double)(t_end - t_start) / CLOCKS_PER_SEC;
+		// cout << "all duration: " << duration << "\n";
+
+		cv::rectangle(processImg, showRect, cv::Scalar(0, 255, 0));
+
+		cv::imshow("windows", processImg);
+		cv::waitKey(1);
+		count++;
+    if (count >= 1)
+      break;
+ 
+	}
+	std::cout << "FPS: " <<count / duration << "\n";
+
+	waitKey();
+//	system("pause");
+	return 0;
+
+}
+
+
+
+
+
+#endif
+
+
+
+
+
+
+

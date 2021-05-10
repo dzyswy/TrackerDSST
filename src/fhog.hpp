@@ -133,7 +133,7 @@ typedef struct{
 // Error status
 */
 int getFeatureMaps(const IplImage * image, const int k, CvLSVMFeatureMapCaskade **map);
-
+int calcFeatureMaps(const IplImage* image, const int k, CvLSVMFeatureMapCaskade **map);
 
 /*
 // Feature map Normalization and Truncation 
@@ -174,5 +174,7 @@ int allocFeatureMapObject(CvLSVMFeatureMapCaskade **obj, const int sizeX, const 
 
 int freeFeatureMapObject (CvLSVMFeatureMapCaskade **obj);
 
+void log_featuremap(CvLSVMFeatureMapCaskade* map);
+int compare_featuremap(CvLSVMFeatureMapCaskade* map0, CvLSVMFeatureMapCaskade* map1);
 
 #endif
